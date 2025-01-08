@@ -12,6 +12,15 @@ spring:
             redis-rate-limiter.replenishRate: 10
             redis-rate-limiter.burstCapacity: 20
 
+# 认证白名单配置
+gateway:
+  auth:
+    exclude-paths:
+      - path: "/service1/api/books"
+        methods: [GET]  # 允许GET方法不需要认证
+      - path: "/service2/api/books**"
+        methods: [GET, POST]   # 允许GET和POST方法不需要认证
+
 management:
   endpoints:
     web:
