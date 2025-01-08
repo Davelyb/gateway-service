@@ -1,6 +1,7 @@
 package com.example.gateway.filter;
 
 import com.example.gateway.config.AuthProperties;
+import com.example.gateway.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -18,6 +19,9 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
 
     @Autowired
     private AuthProperties authProperties;
+    
+    @Autowired
+    private AuthService authService;
     
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
@@ -39,25 +43,40 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
         System.out.println("authHeader: " + authHeader);
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-            exchange.getResponse().getHeaders().add("Content-Type", "application/json");
-            String errorMessage = "{\"message\":\"认证失败:请提供有效的Bearer Token\",\"status\":401}";
-            byte[] bytes = errorMessage.getBytes();
-            return exchange.getResponse().writeWith(Mono.just(exchange.getResponse().bufferFactory().wrap(bytes)));
+            return handleUnauthorized(exchange);
         }
-        
-        return chain.filter(exchange);
+
+        // 验证token并获取用户信息
+        return authService.validateToken(authHeader)
+                .flatMap(userInfo -> {
+                    // 将用户ID添加到请求头
+                    ServerHttpRequest newRequest = request.mutate()
+                            .header("user-id", String.valueOf(userInfo.getUserId()))
+                            .build();
+                    
+                    return chain.filter(exchange.mutate().request(newRequest).build());
+                })
+                .onErrorResume(error -> {
+                    System.out.println("认证服务调用失败: " + error.getMessage());
+                    return handleUnauthorized(exchange);
+                });
+    }
+
+    private Mono<Void> handleUnauthorized(ServerWebExchange exchange) {
+        exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+        exchange.getResponse().getHeaders().add("Content-Type", "application/json");
+        String errorMessage = "{\"message\":\"认证失败:请提供有效的Bearer Token\",\"status\":401}";
+        byte[] bytes = errorMessage.getBytes();
+        return exchange.getResponse().writeWith(Mono.just(exchange.getResponse().bufferFactory().wrap(bytes)));
     }
 
     private boolean isExcludedPath(String path, HttpMethod method) {
         return authProperties.getExcludePaths().stream()
                 .filter(config -> pathMatcher.match(config.getPath(), path))
                 .anyMatch(config -> {
-                    // 如果methods为空，表示所有方法都允许
                     if (config.getMethods() == null || config.getMethods().isEmpty()) {
                         return true;
                     }
-                    // 否则检查具体方法是否匹配
                     return config.getMethods().contains(method.name());
                 });
     }
