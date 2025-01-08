@@ -1,0 +1,19 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      default-filters:
+        - name: RequestRateLimiter
+          args:
+            redis-rate-limiter.replenishRate: 10
+            redis-rate-limiter.burstCapacity: 20
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*" 
