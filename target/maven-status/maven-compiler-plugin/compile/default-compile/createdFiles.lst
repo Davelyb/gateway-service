@@ -1,0 +1,8 @@
+com\example\gateway\config\AuthProperties.class
+com\example\gateway\service\AuthService.class
+com\example\gateway\GatewayApplication.class
+com\example\gateway\config\WebClientConfig.class
+com\example\gateway\config\AuthProperties$PathConfig.class
+com\example\gateway\filter\AuthenticationFilter.class
+com\example\gateway\config\GatewayConfig.class
+com\example\gateway\service\AuthService$UserInfo.class

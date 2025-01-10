@@ -23,6 +23,12 @@ public class GatewayConfig {
                                 .stripPrefix(1)
                                 .addRequestHeader("X-Gateway-Request", "true"))
                         .uri("http://localhost:8082"))
+                .route("auth_service_route", r -> r
+                        .path("/auth-service/**")
+                        .filters(f -> f
+                                .stripPrefix(1)
+                                .addRequestHeader("X-Gateway-Request", "true"))
+                        .uri("lb://auth-service"))
                 .build();
     }
 } 
