@@ -1,7 +1,5 @@
 package com.example.gateway.filter;
 
-import com.example.gateway.config.AuthProperties;
-import com.example.gateway.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -12,6 +10,10 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.server.ServerWebExchange;
+
+import com.example.gateway.config.AuthProperties;
+import com.example.gateway.service.AuthService;
+
 import reactor.core.publisher.Mono;
 
 @Component
