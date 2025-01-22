@@ -1,4 +1,4 @@
-# gateway-service
+# gateway-service 本项目仅用来个人练习网关服务
 
 ## 启动
 
